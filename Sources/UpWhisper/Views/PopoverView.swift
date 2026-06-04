@@ -26,7 +26,7 @@ struct PopoverView: View {
 
     private var header: some View {
         HStack {
-            Text("UpWhisper")
+            Text("Up/Whisper")
                 .font(.headline)
             Spacer()
             Button {

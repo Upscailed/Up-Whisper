@@ -90,7 +90,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
            let img = NSImage(contentsOf: url) {
             return img
         }
-        return NSImage(systemSymbolName: "mic.fill", accessibilityDescription: "UpWhisper")!
+        return NSImage(systemSymbolName: "mic.fill", accessibilityDescription: "Up/Whisper")!
     }()
 
     private func makeStatusImage(background: NSColor?) -> NSImage {

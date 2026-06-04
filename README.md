@@ -1,4 +1,4 @@
-# UpWhisper
+# Up/Whisper
 
 On-device speech-to-text for macOS. Lives in your menu bar — press a hotkey anywhere, dictate, and your words appear instantly in whatever text field is active.
 
@@ -46,13 +46,13 @@ swift build -c release
 
 ### Build a distributable .app
 
-To produce a packaged `UpWhisper.app` (with icon, Info.plist, and bundled resources):
+To produce a packaged `Up Whisper.app` (with icon, Info.plist, and bundled resources):
 
 ```bash
 ./bundle.sh
 ```
 
-The app is written to `dist/UpWhisper.app` — drag it to your Applications folder.
+The app is written to `dist/Up Whisper.app` — drag it to your Applications folder.
 
 ### First run
 
@@ -68,7 +68,7 @@ The app is written to `dist/UpWhisper.app` — drag it to your Applications fold
 |---|---|
 | Start recording | `⌃⌥` (Control + Option) |
 | Stop recording | `⌃⌥` again — text pastes into the active field |
-| Open UpWhisper | Click the mic icon in the menu bar |
+| Open Up/Whisper | Click the mic icon in the menu bar |
 | View history | Click the clock icon in the popover header |
 | Change model or language | Click the gear icon in the popover header |
 

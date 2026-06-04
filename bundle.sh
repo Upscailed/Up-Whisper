@@ -1,9 +1,12 @@
 #!/bin/bash
-# Bouwt UpWhisper als distribueerbare .app-bundle.
+# Bouwt Up/Whisper als distribueerbare .app-bundle.
 # Gebruik: ./bundle.sh
 set -euo pipefail
 
-APP_NAME="UpWhisper"
+# Weergavenaam van de .app-bundle (zichtbaar in Finder)
+APP_NAME="Up Whisper"
+# Naam van de Swift-binary (technisch, moet matchen met CFBundleExecutable)
+BIN_NAME="UpWhisper"
 BUILD_CONFIG="release"
 ROOT="$(cd "$(dirname "$0")" && pwd)"
 RES="$ROOT/Sources/UpWhisper/Resources"
@@ -20,8 +23,8 @@ rm -rf "$APP"
 mkdir -p "$APP/Contents/MacOS"
 mkdir -p "$APP/Contents/Resources"
 
-# Executable
-cp "$BIN_DIR/$APP_NAME" "$APP/Contents/MacOS/$APP_NAME"
+# Executable (binary-naam blijft UpWhisper, matcht CFBundleExecutable)
+cp "$BIN_DIR/$BIN_NAME" "$APP/Contents/MacOS/$BIN_NAME"
 
 # Info.plist + icoon
 cp "$RES/Info.plist" "$APP/Contents/Info.plist"
