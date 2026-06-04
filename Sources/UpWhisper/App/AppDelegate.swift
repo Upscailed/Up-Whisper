@@ -13,6 +13,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     )
     private let hotkeyManager = HotkeyManager()
     private var targetPID: pid_t = 0
+    private var stopTask: Task<Void, Never>?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(.accessory)
@@ -42,23 +43,55 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         popover?.contentViewController = NSHostingController(rootView: view)
     }
 
+    /// Grens tussen "tik" (toggle) en "vasthouden" (push-to-talk), in seconden.
+    private let holdThreshold: TimeInterval = 0.4
+    private var hotkeyPressTime: Date?
+    /// True zodra een korte tik de opname in toggle-modus heeft gezet.
+    private var toggleArmed = false
+
     private func setupHotkey() {
-        hotkeyManager.onTrigger = { [weak self] in
-            self?.hotkeyTriggered()
-        }
+        hotkeyManager.onPress = { [weak self] in self?.hotkeyPressed() }
+        hotkeyManager.onRelease = { [weak self] in self?.hotkeyReleased() }
         hotkeyManager.register()
     }
 
-    private func hotkeyTriggered() {
-        if coordinator.isRecording {
-            popover?.performClose(nil)
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) { [weak self] in
-                guard let self else { return }
-                self.coordinator.toggle(pasteAfter: true, targetPID: self.targetPID)
-            }
+    private func hotkeyPressed() {
+        if toggleArmed || coordinator.isRecording {
+            // Opname loopt in toggle-modus → stoppen en plakken.
+            toggleArmed = false
+            hotkeyPressTime = nil
+            stopAndPaste()
         } else {
+            // Start opname; release bepaalt of het push-to-talk of toggle wordt.
             targetPID = NSWorkspace.shared.frontmostApplication?.processIdentifier ?? 0
+            hotkeyPressTime = Date()
             coordinator.toggle(pasteAfter: false)
+        }
+    }
+
+    private func hotkeyReleased() {
+        // Niet wachten op coordinator.isRecording — die is async en kan nog false zijn.
+        guard let pressTime = hotkeyPressTime else { return }
+        let held = Date().timeIntervalSince(pressTime)
+        hotkeyPressTime = nil
+        if held >= holdThreshold {
+            // Vastgehouden → push-to-talk: stop en plak bij loslaten.
+            toggleArmed = false
+            stopAndPaste()
+        } else {
+            // Korte tik → toggle-modus: wacht op volgende druk om te stoppen.
+            toggleArmed = true
+        }
+    }
+
+    private func stopAndPaste() {
+        stopTask?.cancel()
+        popover?.performClose(nil)
+        stopTask = Task { @MainActor [weak self] in
+            guard let self else { return }
+            try? await Task.sleep(for: .milliseconds(250))
+            guard !Task.isCancelled else { return }
+            self.coordinator.toggle(pasteAfter: true, targetPID: self.targetPID)
         }
     }
 

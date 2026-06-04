@@ -5,6 +5,7 @@ struct SettingsView: View {
 
     @AppStorage("selectedModel") private var selectedModel = "openai_whisper-large-v3_turbo"
     @AppStorage("language") private var language = "nl"
+    @AppStorage("hotkeyModifiers") private var hotkeyModifiers = "control_option"
 
     let models = [
         ("openai_whisper-large-v3_turbo", "large-v3-turbo (Aanbevolen)"),
@@ -46,6 +47,16 @@ struct SettingsView: View {
                         Text(lang.1).tag(lang.0)
                     }
                 }
+            }
+            Section("Sneltoets") {
+                Picker("Toetsen", selection: $hotkeyModifiers) {
+                    ForEach(HotkeyManager.options, id: \.id) { option in
+                        Text(option.label).tag(option.id)
+                    }
+                }
+                Text("Tik om opname te starten en stoppen. Houd de toetsen vast om op te nemen en laat los om te plakken.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
             }
         }
         .formStyle(.grouped)

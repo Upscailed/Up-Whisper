@@ -8,6 +8,7 @@ class RecordingCoordinator {
 
     private(set) var isRecording = false
     private(set) var isProcessing = false
+    private(set) var isTransitioning = false
     private(set) var liveText = ""
     private(set) var latestTranscription = ""
     private(set) var audioLevel: Float = 0
@@ -22,6 +23,7 @@ class RecordingCoordinator {
 
     func toggle(pasteAfter: Bool = false, targetPID: pid_t = 0) {
         Task { @MainActor in
+            guard !isTransitioning else { return }
             if isRecording {
                 await stopStream(paste: pasteAfter, targetPID: targetPID)
             } else {
@@ -32,6 +34,7 @@ class RecordingCoordinator {
 
     @MainActor
     private func startStream(pasteAfter: Bool, targetPID: pid_t) {
+        isTransitioning = true
         let lang = UserDefaults.standard.string(forKey: "language") ?? "nl"
         guard let transcriber = transcriptionService.makeStreamTranscriber(
             language: lang,
@@ -50,6 +53,7 @@ class RecordingCoordinator {
 
         streamTranscriber = transcriber
         isRecording = true
+        isTransitioning = false
         liveText = ""
         latestTranscription = ""
 
@@ -68,6 +72,7 @@ class RecordingCoordinator {
         guard let transcriber = streamTranscriber else { return }
         isRecording = false
         isProcessing = true
+        isTransitioning = true
         try? await Task.sleep(for: .milliseconds(1500))
         await transcriber.stopStreamTranscription()
         _ = try? await streamTask?.value
@@ -77,6 +82,7 @@ class RecordingCoordinator {
         let finalText = liveText.trimmingCharacters(in: .whitespacesAndNewlines)
         liveText = ""
         isProcessing = false
+        isTransitioning = false
         if !finalText.isEmpty {
             latestTranscription = finalText
             historyManager.add(TranscriptionEntry(text: finalText, model: transcriptionService.loadedModel))
