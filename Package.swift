@@ -16,7 +16,7 @@ let package = Package(
                 .product(name: "WhisperKit", package: "WhisperKit")
             ],
             path: "Sources/UpWhisper",
-            exclude: ["Resources/Info.plist"],
+            exclude: ["Resources/Info.plist", "Resources/AppIcon.icns"],
             resources: [.copy("Resources/MenuBarMic.png")]
         )
     ]

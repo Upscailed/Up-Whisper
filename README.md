@@ -44,6 +44,16 @@ Or build from the command line:
 swift build -c release
 ```
 
+### Build a distributable .app
+
+To produce a packaged `UpWhisper.app` (with icon, Info.plist, and bundled resources):
+
+```bash
+./bundle.sh
+```
+
+The app is written to `dist/UpWhisper.app` — drag it to your Applications folder.
+
 ### First run
 
 1. Grant **microphone access** when prompted

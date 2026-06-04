@@ -4,6 +4,12 @@
 <dict>
     <key>CFBundleIdentifier</key>
     <string>nl.upscailed.upwhisper</string>
+    <key>CFBundleExecutable</key>
+    <string>UpWhisper</string>
+    <key>CFBundlePackageType</key>
+    <string>APPL</string>
+    <key>CFBundleIconFile</key>
+    <string>AppIcon</string>
     <key>CFBundleName</key>
     <string>UpWhisper</string>
     <key>CFBundleDisplayName</key>
