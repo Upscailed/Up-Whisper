@@ -57,11 +57,19 @@ struct PopoverView: View {
             Spacer()
 
             if transcriptionService.state == .loadingModel {
-                VStack(spacing: 8) {
-                    ProgressView()
-                    Text("Model downloaden...")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+                VStack(spacing: 10) {
+                    if transcriptionService.downloadProgress > 0 {
+                        ProgressView(value: transcriptionService.downloadProgress)
+                            .frame(width: 200)
+                        Text("Downloaden... \(Int(transcriptionService.downloadProgress * 100))%")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    } else {
+                        ProgressView()
+                        Text("Model laden...")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
                 }
             } else if transcriptionService.state == .idle, let error = transcriptionService.lastError {
                 VStack(spacing: 8) {
@@ -76,6 +84,22 @@ struct PopoverView: View {
                         .padding(.horizontal, 8)
                     Button("Opnieuw proberen") {
                         Task { await transcriptionService.loadModel() }
+                    }
+                    .buttonStyle(.bordered)
+                }
+                .padding()
+            } else if let error = coordinator.errorMessage {
+                VStack(spacing: 8) {
+                    Image(systemName: "mic.slash")
+                        .font(.title2)
+                        .foregroundStyle(.orange)
+                    Text(error)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal, 16)
+                    Button("Sluiten") {
+                        coordinator.dismissError()
                     }
                     .buttonStyle(.bordered)
                 }

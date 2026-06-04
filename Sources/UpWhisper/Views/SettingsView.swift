@@ -25,20 +25,38 @@ struct SettingsView: View {
             Section("Model") {
                 Picker("Whisper model", selection: $selectedModel) {
                     ForEach(models, id: \.0) { model in
-                        Text(model.1).tag(model.0)
+                        let installed = transcriptionService.installedModels.contains(model.0)
+                        Text(installed ? "\(model.1) ✓" : model.1).tag(model.0)
                     }
                 }
                 .onChange(of: selectedModel) { _, newModel in
                     Task { await transcriptionService.loadModel(newModel) }
                 }
                 if transcriptionService.state == .loadingModel {
-                    HStack(spacing: 8) {
-                        ProgressView()
-                            .scaleEffect(0.7)
-                        Text("Model laden...")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
+                    if transcriptionService.downloadProgress > 0 {
+                        VStack(alignment: .leading, spacing: 4) {
+                            ProgressView(value: transcriptionService.downloadProgress)
+                            Text("Downloaden... \(Int(transcriptionService.downloadProgress * 100))%")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                    } else {
+                        HStack(spacing: 8) {
+                            ProgressView()
+                                .scaleEffect(0.7)
+                            Text("Model laden...")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
                     }
+                }
+                if !transcriptionService.installedModels.isEmpty {
+                    let names = transcriptionService.installedModels
+                        .compactMap { id in models.first { $0.0 == id }?.1.components(separatedBy: " ").first }
+                        .joined(separator: " · ")
+                    Text("Lokaal: \(names)")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
                 }
             }
             Section("Taal") {
