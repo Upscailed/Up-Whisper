@@ -7,17 +7,24 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private var popover: NSPopover?
     private let transcriptionService = TranscriptionService()
     private let historyManager = HistoryManager()
+    private lazy var coordinator = RecordingCoordinator(
+        transcriptionService: transcriptionService,
+        historyManager: historyManager
+    )
+    private let hotkeyManager = HotkeyManager()
+    private var targetPID: pid_t = 0
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(.accessory)
         setupMenuBar()
         setupPopover()
+        setupHotkey()
+        startObservingCoordinator()
     }
 
     private func setupMenuBar() {
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
         if let button = statusItem?.button {
-            button.image = NSImage(systemSymbolName: "mic.fill", accessibilityDescription: "UpWhisper")
             button.action = #selector(togglePopover)
             button.target = self
         }
@@ -26,12 +33,76 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private func setupPopover() {
         let view = PopoverView(
             transcriptionService: transcriptionService,
-            historyManager: historyManager
+            historyManager: historyManager,
+            coordinator: coordinator
         )
         popover = NSPopover()
         popover?.contentSize = NSSize(width: 320, height: 460)
         popover?.behavior = .transient
         popover?.contentViewController = NSHostingController(rootView: view)
+    }
+
+    private func setupHotkey() {
+        hotkeyManager.onTrigger = { [weak self] in
+            self?.hotkeyTriggered()
+        }
+        hotkeyManager.register()
+    }
+
+    private func hotkeyTriggered() {
+        if coordinator.isRecording {
+            popover?.performClose(nil)
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) { [weak self] in
+                guard let self else { return }
+                self.coordinator.toggle(pasteAfter: true, targetPID: self.targetPID)
+            }
+        } else {
+            targetPID = NSWorkspace.shared.frontmostApplication?.processIdentifier ?? 0
+            coordinator.toggle(pasteAfter: false)
+        }
+    }
+
+    private func startObservingCoordinator() {
+        withObservationTracking {
+            _ = coordinator.isRecording
+            _ = coordinator.isProcessing
+        } onChange: { [weak self] in
+            Task { @MainActor [weak self] in
+                self?.updateStatusIcon()
+                self?.startObservingCoordinator()
+            }
+        }
+        updateStatusIcon()
+    }
+
+    private func updateStatusIcon() {
+        if coordinator.isRecording {
+            statusItem?.button?.image = makeStatusImage(background: .systemRed)
+        } else if coordinator.isProcessing {
+            statusItem?.button?.image = makeStatusImage(background: .systemOrange)
+        } else {
+            statusItem?.button?.image = makeStatusImage(background: nil)
+        }
+    }
+
+    private func makeStatusImage(background: NSColor?) -> NSImage {
+        guard let bg = background else {
+            let icon = NSImage(systemSymbolName: "mic.fill", accessibilityDescription: "UpWhisper")!
+            icon.isTemplate = true
+            return icon
+        }
+        let size = NSSize(width: 22, height: 22)
+        let image = NSImage(size: size, flipped: false) { rect in
+            bg.setFill()
+            NSBezierPath(ovalIn: rect).fill()
+            let config = NSImage.SymbolConfiguration(paletteColors: [.white])
+            NSImage(systemSymbolName: "mic.fill", accessibilityDescription: nil)?
+                .withSymbolConfiguration(config)?
+                .draw(in: rect.insetBy(dx: 4, dy: 4))
+            return true
+        }
+        image.isTemplate = false
+        return image
     }
 
     @objc private func togglePopover() {

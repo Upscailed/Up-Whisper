@@ -1,12 +1,14 @@
 import SwiftUI
 
 struct SettingsView: View {
-    @AppStorage("selectedModel") private var selectedModel = "openai_whisper-large-v3-turbo"
+    let transcriptionService: TranscriptionService
+
+    @AppStorage("selectedModel") private var selectedModel = "openai_whisper-large-v3_turbo"
     @AppStorage("language") private var language = "nl"
 
     let models = [
-        ("openai_whisper-large-v3-turbo", "large-v3-turbo (Aanbevolen)"),
-        ("openai_whisper-small", "small (Snel, minder data)"),
+        ("openai_whisper-large-v3_turbo", "large-v3-turbo (Aanbevolen)"),
+        ("openai_whisper-small", "small (Snel, minder accuraat)"),
         ("openai_whisper-medium", "medium"),
         ("openai_whisper-large-v3", "large-v3 (Beste kwaliteit)")
     ]
@@ -25,6 +27,18 @@ struct SettingsView: View {
                         Text(model.1).tag(model.0)
                     }
                 }
+                .onChange(of: selectedModel) { _, newModel in
+                    Task { await transcriptionService.loadModel(newModel) }
+                }
+                if transcriptionService.state == .loadingModel {
+                    HStack(spacing: 8) {
+                        ProgressView()
+                            .scaleEffect(0.7)
+                        Text("Model laden...")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                }
             }
             Section("Taal") {
                 Picker("Standaard taal", selection: $language) {
@@ -35,7 +49,5 @@ struct SettingsView: View {
             }
         }
         .formStyle(.grouped)
-        .frame(width: 360, height: 200)
-        .navigationTitle("Instellingen")
     }
 }

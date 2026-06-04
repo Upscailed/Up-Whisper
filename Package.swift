@@ -6,6 +6,9 @@ let package = Package(
     platforms: [
         .macOS(.v14)
     ],
+    dependencies: [
+        .package(url: "https://github.com/argmaxinc/WhisperKit", from: "0.1.0")
+    ],
     targets: [
         .executableTarget(
             name: "UpWhisper",
@@ -13,12 +16,7 @@ let package = Package(
                 .product(name: "WhisperKit", package: "WhisperKit")
             ],
             path: "Sources/UpWhisper",
-            resources: [
-                .process("Resources")
-            ]
+            exclude: ["Resources/Info.plist"]
         )
-    ],
-    dependencies: [
-        .package(url: "https://github.com/argmaxinc/WhisperKit", from: "0.9.0")
     ]
 )
