@@ -1,5 +1,6 @@
 import AppKit
 import SwiftUI
+import ServiceManagement
 
 @MainActor
 class AppDelegate: NSObject, NSApplicationDelegate {
@@ -14,6 +15,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private let hotkeyManager = HotkeyManager()
     private var targetPID: pid_t = 0
     private var stopTask: Task<Void, Never>?
+    private var isHotkeyPaused = false
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(.accessory)
@@ -26,8 +28,76 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private func setupMenuBar() {
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
         if let button = statusItem?.button {
-            button.action = #selector(togglePopover)
+            button.action = #selector(handleClick)
+            button.sendAction(on: [.leftMouseUp, .rightMouseUp])
             button.target = self
+        }
+    }
+
+    @objc private func handleClick(_ sender: NSStatusBarButton) {
+        guard let event = NSApp.currentEvent else { return }
+        if event.type == .rightMouseUp {
+            showContextMenu()
+        } else {
+            togglePopover()
+        }
+    }
+
+    private func showContextMenu() {
+        let menu = NSMenu()
+
+        let loginItem = NSMenuItem(
+            title: "Starten bij inloggen",
+            action: #selector(toggleLoginItem),
+            keyEquivalent: ""
+        )
+        loginItem.state = SMAppService.mainApp.status == .enabled ? .on : .off
+        loginItem.target = self
+        menu.addItem(loginItem)
+
+        let pauseItem = NSMenuItem(
+            title: "Pauzeer sneltoets",
+            action: #selector(toggleHotkeyPause),
+            keyEquivalent: ""
+        )
+        pauseItem.state = isHotkeyPaused ? .on : .off
+        pauseItem.target = self
+        menu.addItem(pauseItem)
+
+        menu.addItem(.separator())
+
+        let quitItem = NSMenuItem(
+            title: "Afsluiten",
+            action: #selector(NSApplication.terminate(_:)),
+            keyEquivalent: ""
+        )
+        menu.addItem(quitItem)
+
+        statusItem?.menu = menu
+        statusItem?.button?.performClick(nil)
+        DispatchQueue.main.async { [weak self] in self?.statusItem?.menu = nil }
+    }
+
+    @objc private func toggleLoginItem() {
+        do {
+            if SMAppService.mainApp.status == .enabled {
+                try SMAppService.mainApp.unregister()
+            } else {
+                try SMAppService.mainApp.register()
+            }
+        } catch {
+            print("[LoginItem] Fout: \(error)")
+        }
+    }
+
+    @objc private func toggleHotkeyPause() {
+        isHotkeyPaused.toggle()
+        if isHotkeyPaused {
+            hotkeyManager.unregister()
+            toggleArmed = false
+            hotkeyPressTime = nil
+        } else {
+            hotkeyManager.register()
         }
     }
 
@@ -160,7 +230,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         return image
     }
 
-    @objc private func togglePopover() {
+    private func togglePopover() {
         guard let button = statusItem?.button else { return }
         if let popover {
             if popover.isShown {
