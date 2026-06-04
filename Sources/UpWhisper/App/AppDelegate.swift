@@ -85,20 +85,42 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
 
+    private lazy var micGlyph: NSImage = {
+        if let url = Bundle.module.url(forResource: "MenuBarMic", withExtension: "png"),
+           let img = NSImage(contentsOf: url) {
+            return img
+        }
+        return NSImage(systemSymbolName: "mic.fill", accessibilityDescription: "UpWhisper")!
+    }()
+
     private func makeStatusImage(background: NSColor?) -> NSImage {
         guard let bg = background else {
-            let icon = NSImage(systemSymbolName: "mic.fill", accessibilityDescription: "UpWhisper")!
+            let icon = micGlyph.copy() as! NSImage
+            let height: CGFloat = 18
+            icon.size = NSSize(width: micGlyph.size.width * height / micGlyph.size.height, height: height)
             icon.isTemplate = true
             return icon
         }
         let size = NSSize(width: 22, height: 22)
+        let glyphHeight: CGFloat = 14
+        let glyphWidth = micGlyph.size.width * glyphHeight / micGlyph.size.height
+        let glyph = micGlyph
         let image = NSImage(size: size, flipped: false) { rect in
             bg.setFill()
             NSBezierPath(ovalIn: rect).fill()
-            let config = NSImage.SymbolConfiguration(paletteColors: [.white])
-            NSImage(systemSymbolName: "mic.fill", accessibilityDescription: nil)?
-                .withSymbolConfiguration(config)?
-                .draw(in: rect.insetBy(dx: 4, dy: 4))
+            let white = glyph.copy() as! NSImage
+            white.lockFocus()
+            NSColor.white.set()
+            NSRect(origin: .zero, size: white.size).fill(using: .sourceAtop)
+            white.unlockFocus()
+            white.isTemplate = false
+            let gRect = NSRect(
+                x: (rect.width - glyphWidth) / 2,
+                y: (rect.height - glyphHeight) / 2,
+                width: glyphWidth,
+                height: glyphHeight
+            )
+            white.draw(in: gRect)
             return true
         }
         image.isTemplate = false
