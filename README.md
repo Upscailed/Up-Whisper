@@ -33,8 +33,8 @@ No cloud. No API key. No subscription. Everything runs locally via [WhisperKit](
 ## Getting Started
 
 ```bash
-git clone https://github.com/keidesignco/UpWhisper.git
-cd UpWhisper
+git clone https://github.com/Upscailed/Up-Whisper.git
+cd Up-Whisper
 open Package.swift  # opens in Xcode
 ```
 
