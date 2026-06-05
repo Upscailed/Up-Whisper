@@ -47,6 +47,7 @@ class TranscriptionService {
             let url = try await Self.downloadWithProgress(variant: model) { [weak self] p in
                 self?.downloadProgress = p
             }
+            downloadProgress = 0
             print("[WhisperKit] Laden: \(model)")
             whisperKit = try await WhisperKit(modelFolder: url.path, verbose: true, logLevel: .debug, load: true, download: false)
             loadedModel = model
@@ -62,6 +63,7 @@ class TranscriptionService {
                 let fallbackURL = try await Self.downloadWithProgress(variant: "openai_whisper-large-v3") { [weak self] p in
                     self?.downloadProgress = p
                 }
+                downloadProgress = 0
                 whisperKit = try await WhisperKit(modelFolder: fallbackURL.path, verbose: true, logLevel: .debug, load: true, download: false)
                 print("[WhisperKit] Geladen: openai_whisper-large-v3")
                 downloadProgress = 0
