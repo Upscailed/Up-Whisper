@@ -4,6 +4,12 @@ import ApplicationServices
 
 struct PasteService {
     static func paste(_ text: String, targetPID: pid_t = 0) {
+        // When a specific target app is given (hotkey flow), bypass AX — Electron apps
+        // like WhatsApp may return .success without actually inserting text.
+        if targetPID > 0 {
+            insertViaClipboard(text, targetPID: targetPID)
+            return
+        }
         if insertViaAccessibility(text) { return }
         insertViaClipboard(text, targetPID: targetPID)
     }
@@ -67,14 +73,22 @@ struct PasteService {
         up?.flags   = .maskCommand
 
         if targetPID > 0 {
-            down?.postToPid(targetPID)
-            up?.postToPid(targetPID)
+            // Activate the target app so its focused text field is ready to receive ⌘V.
+            // Electron apps (WhatsApp, Telegram, etc.) require the app to be frontmost
+            // for key events to reach the correct input element.
+            if let app = NSRunningApplication(processIdentifier: targetPID) {
+                app.activate(options: [])
+            }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+                down?.postToPid(targetPID)
+                up?.postToPid(targetPID)
+            }
         } else {
             down?.post(tap: .cgAnnotatedSessionEventTap)
             up?.post(tap: .cgAnnotatedSessionEventTap)
         }
 
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.65) {
             NSPasteboard.general.clearContents()
             if let previous { NSPasteboard.general.setString(previous, forType: .string) }
         }
