@@ -31,7 +31,7 @@ cp "$RES/Info.plist" "$APP/Contents/Info.plist"
 cp "$RES/AppIcon.icns" "$APP/Contents/Resources/AppIcon.icns"
 
 # SPM-resourcebundles (o.a. UpWhisper_UpWhisper.bundle voor Bundle.module)
-# In Contents/Resources/ — daar vindt Bundle.module ze via Bundle.main.resourceURL.
+# In Contents/Resources/ — daar vindt Bundle.main.resourceURL ze als .app-bundle.
 for b in "$BIN_DIR"/*.bundle; do
   [ -e "$b" ] || continue
   cp -R "$b" "$APP/Contents/Resources/"

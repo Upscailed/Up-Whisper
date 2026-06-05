@@ -189,7 +189,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private lazy var micGlyph: NSImage = {
-        if let url = Bundle.module.url(forResource: "MenuBarMic", withExtension: "png"),
+        let bundle: Bundle = {
+            if let url = Bundle.main.resourceURL?.appendingPathComponent("UpWhisper_UpWhisper.bundle"),
+               let b = Bundle(url: url) { return b }
+            return Bundle.main
+        }()
+        if let url = bundle.url(forResource: "MenuBarMic", withExtension: "png"),
            let img = NSImage(contentsOf: url) {
             return img
         }

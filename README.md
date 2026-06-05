@@ -4,7 +4,7 @@ On-device speech-to-text for macOS. Lives in your menu bar — press a hotkey an
 
 No cloud. No API key. No subscription. Everything runs locally via [WhisperKit](https://github.com/argmaxinc/WhisperKit).
 
-![macOS 14+](https://img.shields.io/badge/macOS-14%2B-blue) ![Swift 5.9](https://img.shields.io/badge/Swift-5.9-orange) ![License: MIT](https://img.shields.io/badge/License-MIT-green)
+![macOS 14+](https://img.shields.io/badge/macOS-14%2B-blue) ![Apple Silicon](https://img.shields.io/badge/Apple%20Silicon-arm64-blue) ![Swift 5.9](https://img.shields.io/badge/Swift-5.9-orange) ![License: MIT](https://img.shields.io/badge/License-MIT-green)
 
 ---
 
@@ -21,11 +21,23 @@ No cloud. No API key. No subscription. Everything runs locally via [WhisperKit](
 
 ---
 
+## Download
+
+**[Download the latest release →](https://github.com/Upscailed/Up-Whisper/releases/latest)**
+
+1. Download `Up Whisper.zip` and unzip it
+2. Move `Up Whisper.app` to your Applications folder
+3. Right-click the app → **Open** (required on first launch — macOS will warn about an unverified developer)
+4. Grant microphone and accessibility permissions when prompted
+
+> The app is ad-hoc signed. Apple's warning on first launch is expected — right-click → Open bypasses it.
+
+---
+
 ## Requirements
 
 - macOS 14 (Sonoma) or later
-- Apple Silicon or Intel Mac
-- Xcode 15 or later (to build from source)
+- Apple Silicon (M1 or later)
 - ~1 GB disk space for the default model (downloaded on first run)
 
 ---
@@ -120,7 +132,7 @@ Models/
 
 ## Roadmap
 
-- [ ] Customizable hotkey in Settings
+- [x] Customizable hotkey in Settings
 - [ ] Medical / domain-specific model evaluation (Dutch vocabulary)
 - [ ] iOS app (standalone, whisper-small)
 
