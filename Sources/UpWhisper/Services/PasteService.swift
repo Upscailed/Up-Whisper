@@ -61,7 +61,16 @@ struct PasteService {
 
     // Fallback: klembord + ⌘V gestuurd naar het opgeslagen PID.
     private static func insertViaClipboard(_ text: String, targetPID: pid_t) {
-        let previous = NSPasteboard.general.string(forType: .string)
+        var savedItems: [[NSPasteboard.PasteboardType: Data]] = []
+        for item in NSPasteboard.general.pasteboardItems ?? [] {
+            var itemData: [NSPasteboard.PasteboardType: Data] = [:]
+            for type in item.types {
+                if let data = item.data(forType: type) {
+                    itemData[type] = data
+                }
+            }
+            savedItems.append(itemData)
+        }
         NSPasteboard.general.clearContents()
         NSPasteboard.general.setString(text, forType: .string)
 
@@ -90,7 +99,16 @@ struct PasteService {
 
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.65) {
             NSPasteboard.general.clearContents()
-            if let previous { NSPasteboard.general.setString(previous, forType: .string) }
+            let restoreItems = savedItems.map { itemData -> NSPasteboardItem in
+                let item = NSPasteboardItem()
+                for (type, data) in itemData {
+                    item.setData(data, forType: type)
+                }
+                return item
+            }
+            if !restoreItems.isEmpty {
+                NSPasteboard.general.writeObjects(restoreItems)
+            }
         }
     }
 }
