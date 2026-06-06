@@ -8,3 +8,11 @@ DerivedData/
 
 # .app build output
 dist/
+
+# Graphify kennisgraaf
+graphify-out/
+.graphify_*.json
+.graphify_*.txt
+
+# Claude Code projectinstellingen
+.claude/
