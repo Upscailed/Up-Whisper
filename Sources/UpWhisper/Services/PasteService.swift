@@ -99,7 +99,8 @@ struct PasteService {
 
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.65) {
             NSPasteboard.general.clearContents()
-            let restoreItems = savedItems.map { itemData -> NSPasteboardItem in
+            let restoreItems = savedItems.compactMap { itemData -> NSPasteboardItem? in
+                guard !itemData.isEmpty else { return nil }
                 let item = NSPasteboardItem()
                 for (type, data) in itemData {
                     item.setData(data, forType: type)
