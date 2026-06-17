@@ -4,6 +4,8 @@ struct PopoverView: View {
     let transcriptionService: TranscriptionService
     let historyManager: HistoryManager
     let coordinator: RecordingCoordinator
+    let correctionManager: CorrectionManager
+    let powerModeManager: PowerModeManager
 
     @State private var showHistory = false
     @State private var showSettings = false
@@ -14,9 +16,13 @@ struct PopoverView: View {
             header
             Divider()
             if showSettings {
-                SettingsView(transcriptionService: transcriptionService)
+                SettingsView(
+                    transcriptionService: transcriptionService,
+                    correctionManager: correctionManager,
+                    powerModeManager: powerModeManager
+                )
             } else if showHistory {
-                HistoryView(historyManager: historyManager)
+                HistoryView(historyManager: historyManager, correctionManager: correctionManager)
             } else {
                 mainView
             }

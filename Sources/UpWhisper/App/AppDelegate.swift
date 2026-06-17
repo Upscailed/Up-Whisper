@@ -8,9 +8,13 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private var popover: NSPopover?
     private let transcriptionService = TranscriptionService()
     private let historyManager = HistoryManager()
+    private let correctionManager = CorrectionManager()
+    private let powerModeManager = PowerModeManager()
     private lazy var coordinator = RecordingCoordinator(
         transcriptionService: transcriptionService,
-        historyManager: historyManager
+        historyManager: historyManager,
+        correctionManager: correctionManager,
+        powerModeManager: powerModeManager
     )
     private let hotkeyManager = HotkeyManager()
     private var targetPID: pid_t = 0
@@ -105,7 +109,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         let view = PopoverView(
             transcriptionService: transcriptionService,
             historyManager: historyManager,
-            coordinator: coordinator
+            coordinator: coordinator,
+            correctionManager: correctionManager,
+            powerModeManager: powerModeManager
         )
         popover = NSPopover()
         popover?.contentSize = NSSize(width: 320, height: 460)

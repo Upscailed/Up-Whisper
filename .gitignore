@@ -14,5 +14,9 @@ graphify-out/
 .graphify_*.json
 .graphify_*.txt
 
+# Release bundle (grote bestanden)
+release-bundle/models/
+release-bundle/Up Whisper.app/
+
 # Claude Code projectinstellingen
 .claude/

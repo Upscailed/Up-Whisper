@@ -105,10 +105,19 @@ class TranscriptionService {
 
     func makeStreamTranscriber(
         language: String = "nl",
+        requiredSegmentsForConfirmation: Int = 1,
+        vocabularyWords: [String] = [],
         callback: @escaping AudioStreamTranscriberCallback
     ) -> AudioStreamTranscriber? {
         guard let whisperKit, let tokenizer = whisperKit.tokenizer else { return nil }
-        let options = DecodingOptions(language: language == "auto" ? nil : language)
+        let promptTokens: [Int]? = {
+            let tokens = vocabularyWords.flatMap { tokenizer.encode(text: $0) }
+            return tokens.isEmpty ? nil : tokens
+        }()
+        let options = DecodingOptions(
+            language: language == "auto" ? nil : language,
+            promptTokens: promptTokens
+        )
         return AudioStreamTranscriber(
             audioEncoder: whisperKit.audioEncoder,
             featureExtractor: whisperKit.featureExtractor,
@@ -117,6 +126,7 @@ class TranscriptionService {
             tokenizer: tokenizer,
             audioProcessor: whisperKit.audioProcessor,
             decodingOptions: options,
+            requiredSegmentsForConfirmation: requiredSegmentsForConfirmation,
             useVAD: true,
             stateChangeCallback: callback
         )

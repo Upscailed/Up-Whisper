@@ -22,6 +22,12 @@ class HistoryManager {
         save()
     }
 
+    func update(_ entry: TranscriptionEntry, newText: String) {
+        guard let idx = entries.firstIndex(where: { $0.id == entry.id }) else { return }
+        entries[idx].text = newText
+        save()
+    }
+
     func delete(_ entry: TranscriptionEntry) {
         entries.removeAll { $0.id == entry.id }
         save()

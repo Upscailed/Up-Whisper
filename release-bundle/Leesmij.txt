@@ -1,0 +1,54 @@
+Up/Whisper — Installatie-instructies
+=====================================
+
+Up/Whisper zet je gesproken woord direct om naar tekst, overal op je Mac.
+Druk op Control + Option, spreek, en de tekst verschijnt in het actieve tekstveld.
+
+
+STAP 1 — Installer openen
+--------------------------
+Dubbelklik op "Installeer Up Whisper.command"
+
+Verschijnt er een melding dat macOS de app niet kan controleren?
+→ Rechtermuisknop op het bestand → kies "Open" → klik "Open" in het venster
+
+Er opent een zwart Terminal-venster. Dit is normaal.
+Wacht tot je "Klaar!" ziet staan, en druk daarna op Enter om het te sluiten.
+
+
+STAP 2 — Up Whisper openen
+---------------------------
+Open Up Whisper via Launchpad of Spotlight (Command + Spatie → "Up Whisper").
+
+Het microfoon-icoontje verschijnt rechtsboven in je menubalk.
+
+
+STAP 3 — Toegang verlenen
+--------------------------
+macOS vraagt bij de eerste start om twee toestemmingen:
+
+1. Microfoon — klik op "Sta toe"
+2. Toegankelijkheid — open Systeeminstellingen, ga naar
+   Privacy & Beveiliging → Toegankelijkheid, en zet Up Whisper aan
+
+Beide zijn nodig om de app te laten werken.
+
+
+STAP 4 — Klaar voor gebruik
+----------------------------
+Druk Control + Option om een opname te starten.
+Spreek je tekst in en laat de toetsen los — de tekst wordt automatisch geplakt.
+
+Korte druk (tik): schakelaar — druk nogmaals om te stoppen
+Lang vasthouden: push-to-talk — loslaten stopt de opname en plakt de tekst
+
+
+SNELTOETS AANPASSEN
+--------------------
+Klik op het microfoon-icoontje in de menubalk → tandwiel-icoontje → Sneltoets.
+Je kunt kiezen uit Control+Option, Control+Shift, Option+Shift of alle drie.
+
+
+VRAGEN?
+-------
+Neem contact op met Ramon — ramon@upscailed.nl
