@@ -9,9 +9,11 @@ class RecordingCoordinator {
     private let historyManager: HistoryManager
     private let correctionManager: CorrectionManager
     private let powerModeManager: PowerModeManager
+    private let ollamaService: OllamaService
 
     private(set) var isRecording = false
     private(set) var isProcessing = false
+    private(set) var isEnhancing = false
     private(set) var isTransitioning = false
     private(set) var liveText = ""
     private(set) var latestTranscription = ""
@@ -25,12 +27,14 @@ class RecordingCoordinator {
         transcriptionService: TranscriptionService,
         historyManager: HistoryManager,
         correctionManager: CorrectionManager,
-        powerModeManager: PowerModeManager
+        powerModeManager: PowerModeManager,
+        ollamaService: OllamaService
     ) {
         self.transcriptionService = transcriptionService
         self.historyManager = historyManager
         self.correctionManager = correctionManager
         self.powerModeManager = powerModeManager
+        self.ollamaService = ollamaService
     }
 
     func toggle(pasteAfter: Bool = false, targetPID: pid_t = 0) {
@@ -148,7 +152,6 @@ class RecordingCoordinator {
         var finalText = liveText.trimmingCharacters(in: .whitespacesAndNewlines)
         liveText = ""
         isProcessing = false
-        isTransitioning = false
         if !finalText.isEmpty {
             // N1: correctiewoordenboek toepassen
             finalText = correctionManager.apply(to: finalText)
@@ -156,9 +159,37 @@ class RecordingCoordinator {
             if UserDefaults.standard.bool(forKey: "spokenCommandsEnabled") {
                 finalText = CommandProcessor.apply(to: finalText)
             }
+            // Fase 17: AI-opschoonlaag via Ollama (opt-in); bij falen blijft de ruwe tekst staan.
+            // isTransitioning blijft true zolang de LLM-stap loopt, zodat een nieuwe
+            // hotkey-druk geen opname start terwijl de vorige nog verwerkt wordt.
+            var rawBeforeEnhance: String? = nil
+            if UserDefaults.standard.bool(forKey: "aiEnhanceEnabled") {
+                let minWords = UserDefaults.standard.object(forKey: "aiEnhanceMinWords") as? Int ?? 8
+                let wordCount = finalText.split(whereSeparator: \.isWhitespace).count
+                if wordCount >= minWords {
+                    isEnhancing = true
+                    let model = UserDefaults.standard.string(forKey: "aiEnhanceModel") ?? OllamaService.defaultModel
+                    if let enhanced = await ollamaService.enhance(
+                        finalText,
+                        vocabulary: correctionManager.vocabularyWords,
+                        model: model
+                    ) {
+                        rawBeforeEnhance = finalText
+                        finalText = enhanced
+                    }
+                    isEnhancing = false
+                }
+            }
             latestTranscription = finalText
-            historyManager.add(TranscriptionEntry(text: finalText, model: transcriptionService.loadedModel))
+            historyManager.add(TranscriptionEntry(
+                text: finalText,
+                rawText: rawBeforeEnhance,
+                model: transcriptionService.loadedModel
+            ))
+            isTransitioning = false
             if paste { PasteService.paste(finalText, targetPID: targetPID) }
+        } else {
+            isTransitioning = false
         }
     }
 }

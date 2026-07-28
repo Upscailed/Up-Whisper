@@ -66,6 +66,17 @@ struct HistoryView: View {
     @ViewBuilder
     private func editRow(for entry: TranscriptionEntry) -> some View {
         VStack(alignment: .leading, spacing: 8) {
+            if let raw = entry.rawText {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Ruwe transcriptie (vóór AI-opschonen)")
+                        .font(.caption.bold())
+                        .foregroundStyle(.secondary)
+                    Text(raw)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .textSelection(.enabled)
+                }
+            }
             TextEditor(text: $editText)
                 .font(.body)
                 .frame(minHeight: 60, maxHeight: 100)

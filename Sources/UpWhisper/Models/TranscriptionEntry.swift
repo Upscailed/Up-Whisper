@@ -5,10 +5,14 @@ struct TranscriptionEntry: Identifiable, Codable {
     var text: String
     let date: Date
     let model: String
+    /// Ruwe transcriptie vóór AI-opschonen (Fase 17); nil als er niet is opgeschoond.
+    /// Optioneel veld zodat bestaande history.json leesbaar blijft.
+    var rawText: String?
 
-    init(text: String, model: String) {
+    init(text: String, rawText: String? = nil, model: String) {
         self.id = UUID()
         self.text = text
+        self.rawText = rawText
         self.date = Date()
         self.model = model
     }

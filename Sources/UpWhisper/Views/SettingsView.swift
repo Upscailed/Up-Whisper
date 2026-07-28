@@ -5,12 +5,16 @@ struct SettingsView: View {
     let transcriptionService: TranscriptionService
     let correctionManager: CorrectionManager
     let powerModeManager: PowerModeManager
+    let ollamaService: OllamaService
 
     @AppStorage("selectedModel") private var selectedModel = "openai_whisper-large-v3_turbo"
     @AppStorage("language") private var language = "nl"
     @AppStorage("hotkeyModifiers") private var hotkeyModifiers = "control_option"
     @AppStorage("requiredSegmentsForConfirmation") private var requiredSegmentsForConfirmation: Int = 1
     @AppStorage("spokenCommandsEnabled") private var spokenCommandsEnabled = false
+    @AppStorage("aiEnhanceEnabled") private var aiEnhanceEnabled = false
+    @AppStorage("aiEnhanceModel") private var aiEnhanceModel = OllamaService.defaultModel
+    @AppStorage("aiEnhanceMinWords") private var aiEnhanceMinWords = 8
 
     @State private var editingRuleID: UUID? = nil
     @State private var editLang: String = ""
@@ -36,9 +40,67 @@ struct SettingsView: View {
             sneltoetsSection
             streamingSection
             commandosSection
+            aiSection
             powerModeSection
         }
         .formStyle(.grouped)
+        .task { await ollamaService.refresh() }
+    }
+
+    private var aiSection: some View {
+        Section("AI-opschonen") {
+            Toggle("Transcriptie opschonen via Ollama", isOn: $aiEnhanceEnabled)
+            if aiEnhanceEnabled {
+                switch ollamaService.status {
+                case .available:
+                    Picker("Model", selection: $aiEnhanceModel) {
+                        // Houd de opgeslagen keuze geldig, ook als het model (nog) niet geïnstalleerd is
+                        if !ollamaService.installedModels.contains(aiEnhanceModel) {
+                            Text("\(aiEnhanceModel) (niet geïnstalleerd)").tag(aiEnhanceModel)
+                        }
+                        ForEach(ollamaService.installedModels, id: \.self) { model in
+                            Text(model).tag(model)
+                        }
+                    }
+                    if ollamaService.installedModels.isEmpty {
+                        Text("Geen modellen gevonden. Installeer er een met: ollama pull \(OllamaService.defaultModel)")
+                            .font(.caption)
+                            .foregroundStyle(.orange)
+                    }
+                    Stepper(value: $aiEnhanceMinWords, in: 0...30) {
+                        HStack {
+                            Text("Overslaan onder")
+                            Spacer()
+                            Text("\(aiEnhanceMinWords) woorden")
+                                .foregroundStyle(.secondary)
+                                .monospacedDigit()
+                        }
+                    }
+                case .unavailable:
+                    HStack(spacing: 8) {
+                        Image(systemName: "exclamationmark.triangle")
+                            .foregroundStyle(.orange)
+                        Text("Ollama niet gevonden op localhost:11434")
+                            .font(.caption)
+                        Spacer()
+                        Button("Opnieuw") {
+                            Task { await ollamaService.refresh() }
+                        }
+                    }
+                case .unknown:
+                    HStack(spacing: 8) {
+                        ProgressView()
+                            .scaleEffect(0.7)
+                        Text("Ollama zoeken...")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+            }
+            Text("Stopwoorden, zelfcorrecties en interpunctie worden lokaal opgeschoond door een klein taalmodel. Bij een fout of als Ollama niet draait wordt de ruwe tekst geplakt.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+        }
     }
 
     private var modelSection: some View {

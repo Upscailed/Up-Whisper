@@ -10,11 +10,13 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private let historyManager = HistoryManager()
     private let correctionManager = CorrectionManager()
     private let powerModeManager = PowerModeManager()
+    private let ollamaService = OllamaService()
     private lazy var coordinator = RecordingCoordinator(
         transcriptionService: transcriptionService,
         historyManager: historyManager,
         correctionManager: correctionManager,
-        powerModeManager: powerModeManager
+        powerModeManager: powerModeManager,
+        ollamaService: ollamaService
     )
     private let hotkeyManager = HotkeyManager()
     private var targetPID: pid_t = 0
@@ -111,7 +113,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             historyManager: historyManager,
             coordinator: coordinator,
             correctionManager: correctionManager,
-            powerModeManager: powerModeManager
+            powerModeManager: powerModeManager,
+            ollamaService: ollamaService
         )
         popover = NSPopover()
         popover?.contentSize = NSSize(width: 320, height: 460)
@@ -175,6 +178,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         withObservationTracking {
             _ = coordinator.isRecording
             _ = coordinator.isProcessing
+            _ = coordinator.isEnhancing
         } onChange: { [weak self] in
             Task { @MainActor [weak self] in
                 self?.updateStatusIcon()
@@ -187,6 +191,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private func updateStatusIcon() {
         if coordinator.isRecording {
             statusItem?.button?.image = makeStatusImage(background: .systemRed)
+        } else if coordinator.isEnhancing {
+            statusItem?.button?.image = makeStatusImage(background: .systemPurple)
         } else if coordinator.isProcessing {
             statusItem?.button?.image = makeStatusImage(background: .systemOrange)
         } else {

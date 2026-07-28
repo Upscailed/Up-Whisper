@@ -6,6 +6,7 @@ struct PopoverView: View {
     let coordinator: RecordingCoordinator
     let correctionManager: CorrectionManager
     let powerModeManager: PowerModeManager
+    let ollamaService: OllamaService
 
     @State private var showHistory = false
     @State private var showSettings = false
@@ -19,7 +20,8 @@ struct PopoverView: View {
                 SettingsView(
                     transcriptionService: transcriptionService,
                     correctionManager: correctionManager,
-                    powerModeManager: powerModeManager
+                    powerModeManager: powerModeManager,
+                    ollamaService: ollamaService
                 )
             } else if showHistory {
                 HistoryView(historyManager: historyManager, correctionManager: correctionManager)
@@ -162,7 +164,10 @@ struct PopoverView: View {
         switch transcriptionService.state {
         case .idle: return "Model laden mislukt"
         case .loadingModel: return "Model downloaden..."
-        case .ready: return coordinator.isRecording ? "Opname loopt..." : "Klik om op te nemen"
+        case .ready:
+            if coordinator.isRecording { return "Opname loopt..." }
+            if coordinator.isEnhancing { return "AI-opschonen..." }
+            return "Klik om op te nemen"
         case .transcribing: return "Transcriberen..."
         }
     }
